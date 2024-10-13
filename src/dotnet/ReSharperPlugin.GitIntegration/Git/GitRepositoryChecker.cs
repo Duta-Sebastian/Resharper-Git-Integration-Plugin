@@ -8,23 +8,17 @@ namespace ReSharperPlugin.GitIntegration.Git;
 
 public class GitRepositoryChecker(ISolution solution)
 {
-    public async Task<bool> IsPartOfGitRepository(CancellationToken cancellationToken)
+    public bool IsPartOfGitRepository()
     {
         try
-        {
-            var output = await GitCommandExecutor.ExecuteCommandAsync("status",
-                solution.SolutionDirectory.FullPath, cancellationToken);
-            Console.WriteLine(output);
+        { 
+            GitCommandExecutor.ExecuteCommand("status",
+                solution.SolutionDirectory.FullPath);
             return true;
-        }
-        catch (OperationCanceledException)
-        {
-            Console.WriteLine("Git operation was canceled.");
-            return false;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Git operation failed: {ex.Message}");
+            Console.WriteLine($@"Git operation failed: {ex.Message}");
             return false;
         }
     }

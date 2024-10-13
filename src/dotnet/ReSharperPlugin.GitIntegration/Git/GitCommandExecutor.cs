@@ -8,8 +8,7 @@ namespace ReSharperPlugin.GitIntegration.Git;
 
 public static class GitCommandExecutor
 {
-    public static async Task<string> ExecuteCommandAsync(string command, string workingDirectory,
-        CancellationToken cancellationToken)
+    public static string ExecuteCommand(string command, string workingDirectory)
     {
         var processInfo = new ProcessStartInfo("git", command)
         {
@@ -27,32 +26,18 @@ public static class GitCommandExecutor
         using var process = new Process();
         process.StartInfo = processInfo;
         process.Start();
-        cancellationToken.Register(() =>
-        {
-            try
-            {
-                if (!process.HasExited)
-                {
-                    process.KillTree();
-                }
-            }
-            catch
-            {
-                throw;
-            }
-        });
         
-        var outputTask = process.StandardOutput.ReadToEndAsync();
-        var errorTask = process.StandardError.ReadToEndAsync();
+        var output = process.StandardOutput.ReadToEnd();
+        var error = process.StandardError.ReadToEnd();
 
         
-        await Task.WhenAll(outputTask, errorTask);
+        process.WaitForExit();
 
         if (process.ExitCode != 0)
         {
-            throw new Exception($"Git command failed: { await errorTask}");
+            throw new Exception($"Git command failed: {error}");
         }
 
-        return await outputTask;
+        return output;
     }
 }
