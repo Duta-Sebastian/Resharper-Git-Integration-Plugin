@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using JetBrains.Application.Settings;
+using JetBrains.DocumentManagers;
 using JetBrains.DocumentModel;
-using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Feature.Services.Daemon;
 using JetBrains.Util;
 using ReSharperPlugin.GitIntegration.Highlighting;
@@ -13,29 +12,31 @@ namespace ReSharperPlugin.GitIntegration.Git;
 [DaemonStage]
 public class GitDaemon : IDaemonStage
 {
-    private string _commitMessage = string.Empty;
+    private Dictionary<string, string> _commitMessageDict;
+
     public GitDaemon()
     {
-        MessageBus.Subscribe<string>(OnCommitMessageReceived);
+        MessageBus.Subscribe<Dictionary<string, string>>(OnCommitMessageReceived);
     }
-    
-    private void OnCommitMessageReceived(string commitMessage)
-    {
-        _commitMessage = commitMessage;
-    }
-    
+
     public IEnumerable<IDaemonStageProcess> CreateProcess(IDaemonProcess process,
         IContextBoundSettingsStore settings, DaemonProcessKind processKind)
     {
-        
         return new List<IDaemonStageProcess>
         {
-            new GitHighlightingDaemonStageProcess(process, _commitMessage) // Pass the commits here
+            new GitHighlightingDaemonStageProcess(process, _commitMessageDict)
         };
+    }
+
+    private void OnCommitMessageReceived(Dictionary<string, string> commitMessageDict)
+    {
+        _commitMessageDict = commitMessageDict;
     }
 }
 
-public class GitHighlightingDaemonStageProcess(IDaemonProcess daemonProcess, string commitMessage)
+public class GitHighlightingDaemonStageProcess(
+    IDaemonProcess daemonProcess,
+    Dictionary<string, string> commitMessageDict)
     : IDaemonStageProcess
 {
     public IDaemonProcess DaemonProcess { get; } = daemonProcess;
@@ -43,43 +44,34 @@ public class GitHighlightingDaemonStageProcess(IDaemonProcess daemonProcess, str
     public void Execute(Action<DaemonStageResult> committer)
     {
         var document = DaemonProcess.Document;
-        var documentPath = DaemonProcess.SourceFile;
+        var documentPath = DaemonProcess.Document.TryGetFilePath();
         var text = document.GetText();
         var highlights = new List<HighlightingInfo>();
-        Console.WriteLine(commitMessage);
-        var whitespaceCount = 0;
-        var startIndex = -1;
-
-        for (var i = 0; i < text.Length; i++)
+        if (commitMessageDict.TryGetValue(documentPath.FullPath, out var commitMessages))
         {
-            if (char.IsWhiteSpace(text[i]))
-            {
-                if (whitespaceCount == 0)
+            var nonWhitespaceCount = 0;
+            var startIndex = -1;
+
+            for (var i = 0; i < text.Length; i++)
+                if (!char.IsWhiteSpace(text[i]))
                 {
-                    startIndex = i;
+                    if (nonWhitespaceCount == 0) startIndex = i;
+
+                    nonWhitespaceCount++;
+
+                    if (nonWhitespaceCount < 5) continue;
+
+                    var range = new DocumentRange(document, new TextRange(startIndex, i + 1));
+                    highlights.Add(new HighlightingInfo(range, new GitHighlighting(range, commitMessages)));
+                    break;
                 }
-
-                whitespaceCount++;
-
-                if (whitespaceCount < 5) continue; // Continue if less than 5 whitespaces
-                
-                var range = new DocumentRange(document, new TextRange(startIndex, i + 1));
-                highlights.Add(new HighlightingInfo(range, new GitHighlighting(range, commitMessage)));
-                break; // Stop after highlighting the first 5 contiguous whitespaces
-            }
-            else
-            {
-                whitespaceCount = 0; // Reset count if not whitespace
-                startIndex = -1;
-            }
+                else
+                {
+                    nonWhitespaceCount = 0;
+                    startIndex = -1;
+                }
         }
 
-        // Optionally use _recentCommits here for further logic
-        // Example: Console.WriteLine("Recent commits count: " + _recentCommits.Count);
-
-        if (highlights.Any())
-        {
-            committer(new DaemonStageResult(highlights)); // Commit the highlights
-        }
+        if (highlights.Any()) committer(new DaemonStageResult(highlights));
     }
 }

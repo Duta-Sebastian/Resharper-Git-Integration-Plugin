@@ -9,14 +9,21 @@ using NUnit.Framework;
 
 [assembly: Apartment(ApartmentState.STA)]
 
-namespace ReSharperPlugin.GitIntegration.Tests
+namespace ReSharperPlugin.GitIntegration.Tests;
+
+[ZoneDefinition]
+public class GitIntegrationTestEnvironmentZone : ITestsEnvZone, IRequire<PsiFeatureTestZone>,
+    IRequire<IGitIntegrationZone>
 {
-    [ZoneDefinition]
-    public class GitIntegrationTestEnvironmentZone : ITestsEnvZone, IRequire<PsiFeatureTestZone>, IRequire<IGitIntegrationZone> { }
+}
 
-    [ZoneMarker]
-    public class ZoneMarker : IRequire<ICodeEditingZone>, IRequire<ILanguageCSharpZone>, IRequire<GitIntegrationTestEnvironmentZone> { }
+[ZoneMarker]
+public class ZoneMarker : IRequire<ICodeEditingZone>, IRequire<ILanguageCSharpZone>,
+    IRequire<GitIntegrationTestEnvironmentZone>
+{
+}
 
-    [SetUpFixture]
-    public class GitIntegrationTestsAssembly : ExtensionTestEnvironmentAssembly<GitIntegrationTestEnvironmentZone> { }
+[SetUpFixture]
+public class GitIntegrationTestsAssembly : ExtensionTestEnvironmentAssembly<GitIntegrationTestEnvironmentZone>
+{
 }

@@ -1,41 +1,45 @@
-using JetBrains.Diagnostics;
 using JetBrains.DocumentModel;
 using JetBrains.ReSharper.Feature.Services.Daemon;
 using JetBrains.ReSharper.Psi.CSharp;
-using JetBrains.ReSharper.Psi.CSharp.Tree;
 
 namespace ReSharperPlugin.GitIntegration.Highlighting;
 
 [RegisterConfigurableSeverity(
     SeverityId,
-    CompoundItemName: null,
-    CompoundItemNameResourceType: null,
-    CompoundItemNameResourceName: null,
-    Group: HighlightingGroupIds.CodeSmell,
-    Title: null,
-    TitleResourceType: typeof(Resources),
-    TitleResourceName: nameof(Resources.SampleHighlightingTitle),
-    Description: null,
-    DescriptionResourceType: typeof(Resources),
-    DescriptionResourceName: nameof(Resources.SampleHighlightingDescription),
-    DefaultSeverity: Severity.WARNING)]
+    null,
+    null,
+    null,
+    HighlightingGroupIds.CodeSmell,
+    null,
+    typeof(Resources),
+    nameof(Resources.GithubIntegrationPluginTitle),
+    null,
+    typeof(Resources),
+    nameof(Resources.GithubIntegrationPluginDescription),
+    Severity.WARNING)]
 [ConfigurableSeverityHighlighting(
     SeverityId,
     CSharpLanguage.Name,
     OverlapResolve = OverlapResolveKind.ERROR,
     OverloadResolvePriority = 0,
     ToolTipFormatStringResourceType = typeof(Resources),
-    ToolTipFormatStringResourceName = nameof(Resources.SampleHighlightingToolTipFormat))]
+    ToolTipFormatStringResourceName = nameof(Resources.GithubIntegrationPluginToolTipFormat))]
 public class GitHighlighting(DocumentRange range, string commitMessage) : IHighlighting
 {
-    private const string SeverityId = "Whitespace"; // Unique severity ID
+    private const string SeverityId = "Github Integration Plugin";
 
     private DocumentRange Range { get; } = range;
 
-    public bool IsValid() => Range.IsValid();
+    public bool IsValid()
+    {
+        return Range.IsValid();
+    }
 
-    public DocumentRange CalculateRange() => Range;
+    public DocumentRange CalculateRange()
+    {
+        return Range;
+    }
 
-    public string ToolTip => string.Format(Resources.SampleHighlightingToolTipFormat, commitMessage);
+    public string ToolTip => string.Format(Resources.GithubIntegrationPluginToolTipFormat, commitMessage);
     public string ErrorStripeToolTip => ToolTip;
 }

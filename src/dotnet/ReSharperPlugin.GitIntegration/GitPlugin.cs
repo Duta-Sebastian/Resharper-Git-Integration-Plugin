@@ -1,39 +1,24 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using JetBrains.Application.Settings;
-using JetBrains.Application.Threading;
-using JetBrains.Application.UI.Icons.CommonThemedIcons;
-using JetBrains.Common.Util;
 using JetBrains.DataFlow;
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
-using JetBrains.Reflection;
-using JetBrains.ReSharper.Daemon.Impl;
+using JetBrains.ReSharper.Feature.Services.Daemon;
 using ReSharperPlugin.GitIntegration.Git;
 using ReSharperPlugin.GitIntegration.SettingsPage;
-using JetBrains.ReSharper.Feature.Services.Daemon;
-using JetBrains.ReSharper.PsiGen;
 
 namespace ReSharperPlugin.GitIntegration;
 
 [SolutionComponent]
 public class GitPlugin
 {
-    private readonly Lifetime _lifetime;
-    private readonly ISolution _solution;
-    private readonly ISettingsStore _settingsStore;
-    private readonly IDaemon _daemon;
     private readonly IProperty<int> _commitCount;
-
-    public event EventHandler<int> CommitCountChanged; 
-    
-    protected virtual void OnCommitCountChanged(int newCount)
-    {
-        CommitCountChanged?.Invoke(this, newCount);
-        _daemon.Invalidate("Settings changed");
-        Git();
-    }
+    private readonly IDaemon _daemon;
+    private readonly Lifetime _lifetime;
+    private readonly ISettingsStore _settingsStore;
+    private readonly ISolution _solution;
+    private GitChangesWatcher _gitChangesWatcher;
+    private bool _isInGitRepo;
 
     public GitPlugin(Lifetime lifetime, ISolution solution, IDaemon daemon, ISettingsStore settingsStore)
     {
@@ -41,21 +26,51 @@ public class GitPlugin
         _solution = solution;
         _settingsStore = settingsStore;
         _daemon = daemon;
-        _commitCount = _settingsStore.BindToContextLive(_lifetime,ContextRange.ApplicationWide)
-            .GetValueProperty<GitPluginSettings, int>(_lifetime, settings => settings.CommitCounter);
-        _commitCount.Change.Advise(_lifetime, changeEvent =>
-        {
-            OnCommitCountChanged(changeEvent.New);
-        });
+
+        _commitCount = _settingsStore.BindToContextLive
+                (_lifetime, ContextRange.ApplicationWide)
+            .GetValueProperty<GitPluginSettings, int>
+                (_lifetime, settings => settings.CommitCounter);
+
+        _commitCount.Change.Advise(_lifetime, OnCommitCountChanged);
+
+        InitializeGitWatcher();
+        if (_isInGitRepo) PublishRecentGitCommits();
+        else Console.WriteLine(@"Not in git");
     }
 
-    private void Git()
+    protected virtual void OnCommitCountChanged()
+    {
+        _daemon.Invalidate("Settings changed");
+        PublishRecentGitCommits();
+    }
+
+    protected virtual void OnGitChangesDetected(object sender, EventArgs e)
+    {
+        _daemon.Invalidate("Git changed");
+        PublishRecentGitCommits();
+    }
+
+    private void InitializeGitWatcher()
     {
         var gitRepoChecker = new GitRepositoryChecker(_solution);
-        var isInGitRepo = gitRepoChecker.IsPartOfGitRepository();
-        if (!isInGitRepo) return;
+        _isInGitRepo = gitRepoChecker.IsPartOfGitRepository();
+        if (!_isInGitRepo) return;
+
+        _gitChangesWatcher = new GitChangesWatcher(
+            _solution.SolutionDirectory.FullPath + "\\.git");
+        _gitChangesWatcher.ChangesDetected += OnGitChangesDetected;
+    }
+
+    private void PublishRecentGitCommits()
+    {
         var gitCommitGetter = new GitRecentCommitsGetter(_solution, _commitCount.Value);
-        var commitMessage = gitCommitGetter.GetGitRecentCommits();
-        MessageBus.Publish(commitMessage);
+        var commitMessageUnformatted = gitCommitGetter.GetGitRecentCommits();
+
+        var gitCommitFormatter = new GitCommitFormatter(commitMessageUnformatted,
+            _solution.SolutionDirectory.FullPath);
+        var commitMessageFormatted = gitCommitFormatter.FormatCommitMessage();
+
+        MessageBus.Publish(commitMessageFormatted);
     }
 }

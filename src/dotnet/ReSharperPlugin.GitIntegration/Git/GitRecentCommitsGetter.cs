@@ -9,10 +9,10 @@ public class GitRecentCommitsGetter(ISolution solution, int commitCount)
     {
         try
         {
-            var output = GitCommandExecutor.ExecuteCommand(
-                $"log -n {commitCount} --name-status --pretty=format:\"%H - %s\" --abbrev-commit",
+            return GitCommandExecutor.ExecuteCommand(
+                $"log -n {commitCount} --name-only " +
+                $"--pretty=format:\"<COMMIT>%h%nMessage: %s\"",
                 solution.SolutionDirectory.FullPath);
-            return output;
         }
         catch (Exception e)
         {

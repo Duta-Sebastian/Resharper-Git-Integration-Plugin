@@ -1,8 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using JetBrains.Util;
 
 namespace ReSharperPlugin.GitIntegration.Git;
 
@@ -18,25 +15,19 @@ public static class GitCommandExecutor
             CreateNoWindow = true
         };
 
-        if (!string.IsNullOrEmpty(workingDirectory))
-        {
-            processInfo.WorkingDirectory = workingDirectory;
-        }
+        if (!string.IsNullOrEmpty(workingDirectory)) processInfo.WorkingDirectory = workingDirectory;
 
         using var process = new Process();
         process.StartInfo = processInfo;
         process.Start();
-        
+
         var output = process.StandardOutput.ReadToEnd();
         var error = process.StandardError.ReadToEnd();
 
-        
+
         process.WaitForExit();
 
-        if (process.ExitCode != 0)
-        {
-            throw new Exception($"Git command failed: {error}");
-        }
+        if (process.ExitCode != 0) throw new Exception($"Git command failed: {error}");
 
         return output;
     }

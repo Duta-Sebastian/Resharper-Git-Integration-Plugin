@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <root>
-    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+                id="root"
+                xmlns="">
         <xsd:element name="root" msdata:IsDataSet="true">
 
         </xsd:element>
@@ -13,27 +15,25 @@
         <value>1.3</value>
     </resheader>
     <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
     </resheader>
     <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
     </resheader>
-    <data name="SampleHighlightingTitle" xml:space="preserve">
-        <value>ReSharper SDK: SampleHighlighting.Title</value>
+    <data name="GithubIntegrationPluginTitle" xml:space="preserve">
+        <value>A highlight that shows the user the last commit messages</value>
     </data>
-    <data name="SampleHighlightingDescription" xml:space="preserve">
-        <value>ReSharper SDK: SampleHighlighting.Description</value>
+    <data name="GithubIntegrationPluginDescription" xml:space="preserve">
+        <value>A highlight that shows the user the last commit messages</value>
     </data>
-    <data name="SampleHighlightingToolTipFormat" xml:space="preserve">
+    <data name="GithubIntegrationPluginToolTipFormat" xml:space="preserve">
         <value>{0}</value>
     </data>
-    <data name="SampleHighlightingToolTip" xml:space="preserve">
+    <data name="GithubIntegrationPluginToolTip" xml:space="preserve">
         <value>{0}</value>
-    </data>
-    <data name="SampleHighlightingErrorStripeToolTip" xml:space="preserve">
-        <value>ReSharper SDK: SampleHighlighting.ErrorStripeToolTip</value>
-    </data>
-    <data name="SampleQuickFixText" xml:space="preserve">
-        <value>ReSharper SDK: SampleQuickFix.Text</value>
     </data>
 </root>

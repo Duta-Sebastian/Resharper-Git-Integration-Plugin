@@ -1,20 +1,28 @@
 ﻿<Project>
 
-  <PropertyGroup>
-    <!-- See https://www.nuget.org/packages/JetBrains.ReSharper.SDK -->
-    <!-- Keep in sync with ProductVersion in gradle.properties -->
-    <SdkVersion>2024.2.4</SdkVersion>
+    <PropertyGroup>
+        <!-- See https://www.nuget.org/packages/JetBrains.ReSharper.SDK -->
+        <!-- Keep in sync with ProductVersion in gradle.properties -->
+        <SdkVersion>2024.2.6</SdkVersion>
 
-    <Title>GitIntegration</Title>
-    <Description>Description</Description>
+        <Title>GitIntegration</Title>
+        <Description>
+            This plugin enhances the developer's workflow by highlighting the commit messages
+            of the most recent Git commits directly in the code editor. It allows users to easily
+            view and track recent changes by displaying commit information, such as messages and
+            details, within the context of the code. Users can configure the number of commits they
+            wish to highlight, making it easier to stay informed about recent project updates without
+            leaving the editor. This streamlined feature integrates seamlessly into the IDE,
+            improving code review and version control management.
+        </Description>
 
-    <Authors>Author</Authors>
-    <Copyright>Copyright $([System.DateTime]::Now.Year) Maintainers of GitIntegration</Copyright>
-    <PackageTags>resharper plugin</PackageTags>
+        <Authors>Duta Andrei-Sebastian</Authors>
+        <Copyright>Copyright $([System.DateTime]::Now.Year) Maintainers of GitIntegration</Copyright>
+        <PackageTags>resharper plugin</PackageTags>
 
-    <PackageProjectUrl></PackageProjectUrl>
-    <PackageLicenseUrl></PackageLicenseUrl>
-    <PackageIconUrl></PackageIconUrl>
-  </PropertyGroup>
+        <PackageProjectUrl></PackageProjectUrl>
+        <PackageLicenseUrl></PackageLicenseUrl>
+        <PackageIconUrl></PackageIconUrl>
+    </PropertyGroup>
 
 </Project>
