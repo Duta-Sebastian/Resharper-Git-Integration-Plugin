@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using JetBrains.Application.Settings;
 using JetBrains.DataFlow;
 using JetBrains.Lifetimes;
@@ -35,20 +36,21 @@ public class GitPlugin
         _commitCount.Change.Advise(_lifetime, OnCommitCountChanged);
 
         InitializeGitWatcher();
-        if (_isInGitRepo) PublishRecentGitCommits();
+        if (_isInGitRepo)
+            _ = PublishRecentGitCommits();
         else Console.WriteLine(@"Not in git");
     }
 
-    protected virtual void OnCommitCountChanged()
+    protected virtual async void OnCommitCountChanged()
     {
         _daemon.Invalidate("Settings changed");
-        PublishRecentGitCommits();
+        await PublishRecentGitCommits();
     }
 
-    protected virtual void OnGitChangesDetected(object sender, EventArgs e)
+    protected virtual async void OnGitChangesDetected(object sender, EventArgs e)
     {
-        _daemon.Invalidate("Git changed");
-        PublishRecentGitCommits();
+        _daemon.Invalidate("Git changed"); 
+        await PublishRecentGitCommits();
     }
 
     private void InitializeGitWatcher()
@@ -62,14 +64,16 @@ public class GitPlugin
         _gitChangesWatcher.ChangesDetected += OnGitChangesDetected;
     }
 
-    private void PublishRecentGitCommits()
+    private async Task PublishRecentGitCommits()
     {
         var gitCommitGetter = new GitRecentCommitsGetter(_solution, _commitCount.Value);
-        var commitMessageUnformatted = gitCommitGetter.GetGitRecentCommits();
+        var commitMessageUnformatted = await Task.Run(() =>
+        gitCommitGetter.GetGitRecentCommits(), _lifetime.ToCancellationToken());
 
         var gitCommitFormatter = new GitCommitFormatter(commitMessageUnformatted,
             _solution.SolutionDirectory.FullPath);
-        var commitMessageFormatted = gitCommitFormatter.FormatCommitMessage();
+        var commitMessageFormatted = await Task.Run(() =>
+            gitCommitFormatter.FormatCommitMessage(), _lifetime.ToCancellationToken());
 
         MessageBus.Publish(commitMessageFormatted);
     }
