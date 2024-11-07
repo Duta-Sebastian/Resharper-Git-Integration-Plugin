@@ -16,7 +16,7 @@ public class GitDaemon : IDaemonStage
 
     public GitDaemon()
     {
-        MessageBus.Subscribe<Dictionary<string, string>>(OnCommitMessageReceived);
+        GitMessageBus.Subscribe<Dictionary<string, string>>(OnCommitMessageReceived);
     }
 
     public IEnumerable<IDaemonStageProcess> CreateProcess(IDaemonProcess process,

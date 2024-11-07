@@ -3,7 +3,7 @@ using ReSharperPlugin.GitIntegration;
 namespace ReSharperPlugin.GitIntegration.Tests;
 
 [TestFixture]
-public class MessageBusTest
+public class GitMessageBusTest
 {
     /// Test: Subscribing to a message type and receiving it when published
     [Test]
@@ -14,8 +14,8 @@ public class MessageBusTest
         var messageReceived = string.Empty;
 
         // Act
-        MessageBus.Subscribe<string>(message => messageReceived = message);
-        MessageBus.Publish(testMessage);
+        GitMessageBus.Subscribe<string>(message => messageReceived = message);
+        GitMessageBus.Publish(testMessage);
 
         // Assert
         Assert.AreEqual(testMessage, messageReceived);
@@ -26,6 +26,6 @@ public class MessageBusTest
     public void Publish_ShouldNotThrowWhenNoSubscribers()
     {
         // Act & Assert
-        Assert.DoesNotThrow(() => MessageBus.Publish("NoSubscribersMessage"));
+        Assert.DoesNotThrow(() => GitMessageBus.Publish("NoSubscribersMessage"));
     }
 }

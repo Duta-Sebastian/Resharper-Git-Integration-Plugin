@@ -16,7 +16,6 @@ public class GitPlugin
     private readonly IProperty<int> _commitCount;
     private readonly IDaemon _daemon;
     private readonly Lifetime _lifetime;
-    private readonly ISettingsStore _settingsStore;
     private readonly ISolution _solution;
     private GitChangesWatcher _gitChangesWatcher;
     private bool _isInGitRepo;
@@ -25,10 +24,9 @@ public class GitPlugin
     {
         _lifetime = lifetime;
         _solution = solution;
-        _settingsStore = settingsStore;
         _daemon = daemon;
 
-        _commitCount = _settingsStore.BindToContextLive
+        _commitCount = settingsStore.BindToContextLive
                 (_lifetime, ContextRange.ApplicationWide)
             .GetValueProperty<GitPluginSettings, int>
                 (_lifetime, settings => settings.CommitCounter);
@@ -43,14 +41,14 @@ public class GitPlugin
 
     protected virtual async void OnCommitCountChanged()
     {
-        _daemon.Invalidate("Settings changed");
         await PublishRecentGitCommits();
+        _daemon.Invalidate("Settings changed");
     }
 
     protected virtual async void OnGitChangesDetected(object sender, EventArgs e)
     {
-        _daemon.Invalidate("Git changed"); 
         await PublishRecentGitCommits();
+        _daemon.Invalidate("Git changed"); 
     }
 
     private void InitializeGitWatcher()
@@ -75,6 +73,6 @@ public class GitPlugin
         var commitMessageFormatted = await Task.Run(() =>
             gitCommitFormatter.FormatCommitMessage(), _lifetime.ToCancellationToken());
 
-        MessageBus.Publish(commitMessageFormatted);
+        GitMessageBus.Publish(commitMessageFormatted);
     }
 }
